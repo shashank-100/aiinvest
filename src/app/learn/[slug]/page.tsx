@@ -1,12 +1,8 @@
 import type { Metadata } from "next";
-import { supabase } from "@/lib/supabase";
-import type { Database } from "@/lib/database.types";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-
-export const revalidate = 3600;
-
-type BlogPost = Database["public"]["Tables"]["blog_posts"]["Row"];
+import { MDXRemote } from "next-mdx-remote/rsc";
+import { getAllPosts, getPostBySlug } from "@/lib/blog";
 
 const categoryLabels: Record<string, string> = {
   "investing-101": "Investing 101",
@@ -22,27 +18,23 @@ const categoryHrefs: Record<string, string> = {
   "ainvest-front-line": "/learn/features/ainvest-front-line",
 };
 
-export async function generateStaticParams() {
-  const { data } = await supabase.from("blog_posts").select("slug");
-  return (data ?? []).map((p: { slug: string }) => ({ slug: p.slug }));
+export function generateStaticParams() {
+  return getAllPosts().map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const { data } = await supabase.from("blog_posts").select("title, excerpt").eq("slug", slug).single();
-  const p = data as Pick<BlogPost, "title" | "excerpt"> | null;
+  const post = getPostBySlug(slug);
   return {
-    title: p ? `${p.title} | AInvest Learn` : "Learn | AInvest",
-    description: p?.excerpt ?? undefined,
-    openGraph: { type: "article", title: p?.title ?? "AInvest Learn" },
+    title: post ? `${post.title} | AInvest Learn` : "Learn | AInvest",
+    description: post?.excerpt ?? undefined,
+    openGraph: { type: "article", title: post?.title ?? "AInvest Learn" },
   };
 }
 
 export default async function LearnPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const { data } = await supabase.from("blog_posts").select("*").eq("slug", slug).single();
-  const post = data as BlogPost | null;
-
+  const post = getPostBySlug(slug);
   if (!post) notFound();
 
   const jsonLd = {
@@ -50,7 +42,7 @@ export default async function LearnPostPage({ params }: { params: Promise<{ slug
     "@type": "Article",
     headline: post.title,
     description: post.excerpt,
-    datePublished: post.published_at,
+    datePublished: post.date,
     author: { "@type": "Organization", name: "AInvest" },
     publisher: { "@type": "Organization", name: "AInvest" },
   };
@@ -69,29 +61,32 @@ export default async function LearnPostPage({ params }: { params: Promise<{ slug
 
         <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-4">{post.title}</h1>
 
-        {post.published_at && (
-          <p className="text-sm text-gray-400 mb-6">
-            {new Date(post.published_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
-          </p>
-        )}
+        <p className="text-sm text-gray-400 mb-6">
+          {new Date(post.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+        </p>
 
-        {post.excerpt && (
-          <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed mb-8 border-l-4 border-[#00d4aa] pl-4">
-            {post.excerpt}
-          </p>
-        )}
+        <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed mb-8 border-l-4 border-[#00d4aa] pl-4">
+          {post.excerpt}
+        </p>
 
-        {post.body ? (
-          <div className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: post.body }} />
-        ) : (
-          <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-8 text-center text-gray-500">
-            <p className="mb-2 font-medium">Full article coming soon.</p>
-            <p className="text-sm mb-4">Ask AIME to explain this topic in depth.</p>
-            <Link href="/aime/agent" className="bg-[#00d4aa] text-black font-bold px-6 py-2.5 rounded-full hover:bg-[#00bfa0] transition-colors">
-              Ask AIME →
-            </Link>
-          </div>
-        )}
+        <div className="prose dark:prose-invert max-w-none
+          prose-headings:font-bold prose-headings:text-gray-900 dark:prose-headings:text-white
+          prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4
+          prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3
+          prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-p:leading-relaxed prose-p:mb-4
+          prose-li:text-gray-700 dark:prose-li:text-gray-300
+          prose-strong:text-gray-900 dark:prose-strong:text-white
+          prose-a:text-[#00d4aa] prose-a:no-underline hover:prose-a:underline">
+          <MDXRemote source={post.content} />
+        </div>
+
+        <div className="mt-12 p-6 bg-gray-50 dark:bg-gray-900 rounded-2xl text-center">
+          <p className="font-semibold mb-2">Want AI-powered stock analysis?</p>
+          <p className="text-sm text-gray-500 mb-4">Ask AIME anything about investing, markets, or specific stocks.</p>
+          <Link href="/aime/agent" className="bg-[#00d4aa] text-black font-bold px-6 py-2.5 rounded-full hover:bg-[#00bfa0] transition-colors">
+            Ask AIME →
+          </Link>
+        </div>
       </div>
     </>
   );

@@ -1,0 +1,75 @@
+---
+title: "Technical Indicator Instructions"
+excerpt: "A complete guide to querying stocks using technical indicators in the AInvest platform."
+category: "ainvest-front-line"
+date: "2024-05-28"
+---
+
+## Using Technical Indicators in AInvest
+
+AInvest's screener includes a comprehensive library of technical indicators that can be combined to build powerful stock screens. This guide explains each major indicator category and how to query them effectively.
+
+## Trend Indicators
+
+**Moving Averages**
+- SMA 20, 50, 100, 200 — simple moving averages for different time horizons
+- EMA 9, 21, 50 — exponential moving averages, more responsive to recent price
+
+Query examples:
+- "Stocks above their 200-day moving average" (long-term uptrend)
+- "Stocks where 50-day MA just crossed above 200-day MA" (golden cross)
+- "Stocks trading within 5% of their 50-day MA" (potential support)
+
+**MACD (Moving Average Convergence Divergence)**
+- MACD line, signal line, histogram
+- Bullish crossover: MACD crosses above signal line
+- Divergence: Price makes new low but MACD doesn't (bullish)
+
+## Momentum Indicators
+
+**RSI (Relative Strength Index)**
+Scale of 0-100. Standard levels: oversold &lt;30, overbought >70.
+
+Query examples:
+- "Oversold stocks with RSI below 30 in uptrending sectors"
+- "Stocks with RSI between 50-60 (early momentum building)"
+
+**Stochastic Oscillator**
+Compares closing price to price range over a period. Similar interpretation to RSI but more sensitive to recent momentum shifts.
+
+**Rate of Change (ROC)**
+Measures the percentage change in price over a set number of periods. Strong positive ROC = strong momentum.
+
+## Volume Indicators
+
+**Relative Volume (RVOL)**
+Current volume divided by average volume. RVOL >2 means volume is 2x normal — significant unusual activity.
+
+**On-Balance Volume (OBV)**
+Cumulative buying/selling pressure indicator. Rising OBV with flat price = accumulation (bullish). Falling OBV with flat price = distribution (bearish).
+
+**Volume-Weighted Average Price (VWAP)**
+The average price weighted by volume throughout the trading day. Stocks above VWAP are in buyer control intraday.
+
+## Volatility Indicators
+
+**Bollinger Bands**
+Upper and lower bands set 2 standard deviations from the 20-day SMA.
+- Price touching lower band = potentially oversold
+- Price touching upper band = potentially overbought
+- **Bollinger Squeeze** (bands contracting) = low volatility preceding a big move
+
+**Average True Range (ATR)**
+Measures average daily price range. High ATR = volatile stock. Use for position sizing — wider ATR requires smaller position size.
+
+## Building Combined Screens
+
+**Breakout screen:** Price crossing 52-week high + Volume >2x average + RSI 55-70 (not yet overbought)
+
+**Oversold bounce screen:** RSI &lt;30 + Price near lower Bollinger Band + MACD bullish divergence + Volume increasing
+
+**Momentum continuation:** Above 50-day MA + RSI 50-65 + MACD above zero line + RVOL >1.5
+
+## Key Takeaway
+
+Technical indicators are most powerful in combination. Use trend indicators to establish direction, momentum indicators to time entry, and volume indicators to confirm conviction. The screener lets you combine all three in a single query.
